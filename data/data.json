@@ -1,0 +1,51 @@
+[
+  {
+    "id": 1,
+    "productName": "Wireless Bluetooth Earbuds",
+    "image": "🎧",
+    "brand": "SoundMasters",
+    "color": "Black",
+    "batteryLife": "10 hours",
+    "price": "59.99",
+    "discount": "15%",
+    "description": "Experience high-quality audio and convenience with these wireless Bluetooth earbuds. Sleek design, long battery life, and excellent sound make them perfect for music lovers on the go."
+  },
+  {
+    "id": 2,
+    "productName": "Intel i9 Gaming Laptop",
+    "image": "💻",
+    "brand": "XtremeGamer",
+    "batteryLife": "10 hours",
+    "price": "1299.99",
+    "discount": "20%",
+    "description": "Unleash the power of gaming with this high-performance laptop. Featuring an Intel Core i7 processor and a dedicated GPU, it's designed for an immersive gaming experience."
+  },
+  {
+    "id": 3,
+    "productName": "Smart Home Security Camera",
+    "image": "📷",
+    "brand": "SecureGuard",
+    "batteryLife": "10 hours",
+    "price": "79.99",
+    "discount": "10%",
+    "description": "Keep your home secure with this smart security camera. HD resolution, night vision, and remote monitoring ensure peace of mind, whether you're at home or away."
+  },
+  {
+    "id": 4,
+    "productName": "Portable External Hard Drive",
+    "image": "💽",
+    "brand": "StoragePro",
+    "price": "69.99",
+    "discount": "5%",
+    "description": "Expand your storage on the go with this portable external hard drive. High capacity, fast data transfer, and compact design make it ideal for storing and transporting files."
+  },
+  {
+    "id": 5,
+    "productName": "4K Ultra HD Smart TV",
+    "image": "📺",
+    "brand": "VisualTech",
+    "price": "999.99",
+    "discount": "15%",
+    "description": "Immerse yourself in breathtaking visuals with this 65-inch 4K Ultra HD Smart TV. Enjoy a seamless streaming experience, vibrant colors, and smart features for a complete entertainment package."
+  }
+]
