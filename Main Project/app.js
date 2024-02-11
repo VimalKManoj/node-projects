@@ -1,6 +1,5 @@
 const express = require('express');
 const morgan = require('morgan');
-
 const tourRouter = require('./Routes/tourRouter');
 const userRouter = require('./Routes/userRouter');
 
@@ -8,7 +7,11 @@ const app = express();
 
 app.use(express.json());
 
-app.use(morgan('dev'));
+app.use(express.static(`${__dirname}/public`));
+
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('dev'));
+}
 
 app.use((req, res, next) => {
   console.log('Hello from middleware');
