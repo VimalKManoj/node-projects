@@ -9,7 +9,9 @@ const tourControllers = require('./../Controllers/tourController');
 router
   .route('/')
   .get(tourControllers.getAllTours)
-  .post(tourControllers.checkBody, tourControllers.createTour);
+  .post(tourControllers.createTour);
+
+// tourControllers.checkBody,
 
 router
   .route('/:id')
