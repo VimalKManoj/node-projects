@@ -6,6 +6,13 @@ const tourControllers = require('./../Controllers/tourController');
 
 // router.param('id', tourControllers.checkID);
 
+router.route('/tour-stats').get(tourControllers.getTourStats);
+router.route('/monthly-plan/:year').get(tourControllers.getMonthlyPlans)
+
+router
+  .route('/top-5-tours')
+  .get(tourControllers.aliasTours, tourControllers.getAllTours);
+
 router
   .route('/')
   .get(tourControllers.getAllTours)
