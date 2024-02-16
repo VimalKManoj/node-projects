@@ -1,3 +1,4 @@
+const AppError = require('../utils/appErrors');
 const Tour = require('./../models/tourModel');
 const APIfeatures = require('./../utils/apiFeatures');
 
@@ -10,7 +11,7 @@ exports.aliasTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = async (req, res) => {
+exports.getAllTours = async (req, res,next) => {
   try {
     const features = new APIfeatures(Tour.find(), req.query)
       .filter()
@@ -27,17 +28,22 @@ exports.getAllTours = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(404).json({
-      status: 'fail',
-      message: 'something went wrong!',
-      error,
-    });
+    next(error)
+    // res.status(404).json({
+    //   status: 'fail',
+    //   message: 'something went wrong!',
+    //   error,
+    // });
   }
 };
 
-exports.getTour = async (req, res) => {
+exports.getTour = async (req, res,next) => {
   try {
     const tour = await Tour.findById(req.params.id);
+
+    if(!tour){
+      return next(new AppError(`Tour with ID not found`,404))
+    }
 
     res.status(200).json({
       status: 'Success',
@@ -46,15 +52,16 @@ exports.getTour = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(404).json({
-      status: 'fail',
-      message: 'something went wrong!',
-      error,
-    });
+    next(error)
+    // res.status(404).json({
+    //   status: 'fail',
+    //   message: 'something went wrong!',
+    //   error,
+    // });
   }
 };
 
-exports.createTour = async (req, res) => {
+exports.createTour = async (req, res,next) => {
   try {
     const newTour = await Tour.create(req.body);
 
@@ -66,20 +73,26 @@ exports.createTour = async (req, res) => {
       },
     });
   } catch (error) {
-    console.error(error);
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data. Please check your request payload.',
-    });
+    next(error)
+    // console.error(error);
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: 'Invalid data. Please check your request payload.',
+    // });
   }
 };
 
-exports.updateTour = async (req, res) => {
+exports.updateTour = async (req, res,next) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
+
+    if(!tour){
+      return next(new AppError(`Tour with ID not found`))
+    }
+
 
     res.status(201).send({
       status: 'success',
@@ -88,29 +101,36 @@ exports.updateTour = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data. Please check your request payload.',
-    });
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: 'Invalid data. Please check your request payload.',
+    // });
+    next(error)
   }
 };
 
-exports.deleteTour = async (req, res) => {
+exports.deleteTour = async (req, res,next) => {
   try {
-    await Tour.findByIdAndDelete(req.params.id);
+    const tour = await Tour.findByIdAndDelete(req.params.id);
+
+    if(!tour){
+      return next(new AppError(`Tour with ID not found`))
+    }
+
     res.status(204).send({
       status: 'deleted',
       data: null,
     });
   } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data. Please check your request payload.',
-    });
+    // res.status(400).json({
+    //   status: 'fail',
+    //   message: 'Invalid data. Please check your request payload.',
+    // });
+    next(error)
   }
 };
 
-exports.getTourStats = async (req, res) => {
+exports.getTourStats = async (req, res,next) => {
   try {
     const stats = await Tour.aggregate([
       {
@@ -138,14 +158,11 @@ exports.getTourStats = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data. Please check your request payload.',
-    });
+    next(error)
   }
 };
 
-exports.getMonthlyPlans = async (req, res) => {
+exports.getMonthlyPlans = async (req, res,next) => {
   try {
     const year = req.params.year;
 
@@ -190,10 +207,7 @@ exports.getMonthlyPlans = async (req, res) => {
       },
     });
   } catch (error) {
-    res.status(400).json({
-      status: 'fail',
-      message: 'Invalid data. Please check your request payload.',
-    });
+    next(error)
   }
 };
 

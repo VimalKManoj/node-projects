@@ -4,6 +4,8 @@ const mongoose = require('mongoose');
 dotenv.config({ path: './config.env' });
 const app = require('./app');
 
+// MONGODB CONNECTION
+
 const DB = process.env.DATABASE.replace(
   '<PASSWORD>',
   process.env.DATABASE_PASSWORD,
@@ -19,6 +21,15 @@ mongoose
   });
 
 const port = process.env.PORT || 3000;
-app.listen(port, () => {
+const server = app.listen(port, () => {
   console.log(`listening to server ${port}`);
+});
+
+// UnhandledRejection - error outside the express app : DB connection etc
+
+process.on('unhandledRejection', (err) => {
+  console.log(err.name, err.message);
+  server.close(() => {
+    process.exit(1);
+  });
 });
