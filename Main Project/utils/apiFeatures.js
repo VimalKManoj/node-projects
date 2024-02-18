@@ -1,6 +1,9 @@
 class APIfeatures {
+  // CONSTRUCTOR METHOD IS CALLED FIRST WHEN CLASS IS CALLED
     constructor(query, queryString) {
+      // find()
       this.query = query;
+      // req.query
       this.queryString = queryString;
     }
   

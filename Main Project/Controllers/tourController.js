@@ -11,13 +11,16 @@ exports.aliasTours = (req, res, next) => {
   next();
 };
 
-exports.getAllTours = async (req, res,next) => {
+exports.getAllTours = async (req, res, next) => {
   try {
+    // BEFORE GETTING ALL TOURS , CHECKS IF ANY OF THE FILTER IS THERE AND ADD IT TO THE QUERY
     const features = new APIfeatures(Tour.find(), req.query)
       .filter()
       .sort()
       .fieldLimit()
       .paginate();
+
+      // CHECKS THE FINAL QUERY AND GETS OUTPUT BASED ON THAT
     const tours = await features.query;
 
     res.status(200).json({
@@ -28,7 +31,7 @@ exports.getAllTours = async (req, res,next) => {
       },
     });
   } catch (error) {
-    next(error)
+    next(error);
     // res.status(404).json({
     //   status: 'fail',
     //   message: 'something went wrong!',
@@ -37,12 +40,12 @@ exports.getAllTours = async (req, res,next) => {
   }
 };
 
-exports.getTour = async (req, res,next) => {
+exports.getTour = async (req, res, next) => {
   try {
     const tour = await Tour.findById(req.params.id);
 
-    if(!tour){
-      return next(new AppError(`Tour with ID not found`,404))
+    if (!tour) {
+      return next(new AppError(`Tour with ID not found`, 404));
     }
 
     res.status(200).json({
@@ -52,7 +55,7 @@ exports.getTour = async (req, res,next) => {
       },
     });
   } catch (error) {
-    next(error)
+    next(error);
     // res.status(404).json({
     //   status: 'fail',
     //   message: 'something went wrong!',
@@ -61,7 +64,7 @@ exports.getTour = async (req, res,next) => {
   }
 };
 
-exports.createTour = async (req, res,next) => {
+exports.createTour = async (req, res, next) => {
   try {
     const newTour = await Tour.create(req.body);
 
@@ -73,7 +76,7 @@ exports.createTour = async (req, res,next) => {
       },
     });
   } catch (error) {
-    next(error)
+    next(error);
     // console.error(error);
     // res.status(400).json({
     //   status: 'fail',
@@ -82,17 +85,16 @@ exports.createTour = async (req, res,next) => {
   }
 };
 
-exports.updateTour = async (req, res,next) => {
+exports.updateTour = async (req, res, next) => {
   try {
     const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
       new: true,
       runValidators: true,
     });
 
-    if(!tour){
-      return next(new AppError(`Tour with ID not found`))
+    if (!tour) {
+      return next(new AppError(`Tour with ID not found`));
     }
-
 
     res.status(201).send({
       status: 'success',
@@ -105,16 +107,16 @@ exports.updateTour = async (req, res,next) => {
     //   status: 'fail',
     //   message: 'Invalid data. Please check your request payload.',
     // });
-    next(error)
+    next(error);
   }
 };
 
-exports.deleteTour = async (req, res,next) => {
+exports.deleteTour = async (req, res, next) => {
   try {
     const tour = await Tour.findByIdAndDelete(req.params.id);
 
-    if(!tour){
-      return next(new AppError(`Tour with ID not found`))
+    if (!tour) {
+      return next(new AppError(`Tour with ID not found`));
     }
 
     res.status(204).send({
@@ -126,11 +128,11 @@ exports.deleteTour = async (req, res,next) => {
     //   status: 'fail',
     //   message: 'Invalid data. Please check your request payload.',
     // });
-    next(error)
+    next(error);
   }
 };
 
-exports.getTourStats = async (req, res,next) => {
+exports.getTourStats = async (req, res, next) => {
   try {
     const stats = await Tour.aggregate([
       {
@@ -158,11 +160,11 @@ exports.getTourStats = async (req, res,next) => {
       },
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 
-exports.getMonthlyPlans = async (req, res,next) => {
+exports.getMonthlyPlans = async (req, res, next) => {
   try {
     const year = req.params.year;
 
@@ -207,7 +209,7 @@ exports.getMonthlyPlans = async (req, res,next) => {
       },
     });
   } catch (error) {
-    next(error)
+    next(error);
   }
 };
 

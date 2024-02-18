@@ -82,9 +82,13 @@ const tourSchema = new mongoose.Schema(
   },
 );
 
+// ---------------------------------------------------------------------------------------------------
+
 tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
+
+// ---------------------------------------------------------------------------------------------------
 
 // runs only for save() and create()
 tourSchema.pre('save', function (next) {
@@ -92,15 +96,22 @@ tourSchema.pre('save', function (next) {
   next();
 });
 
+// ---------------------------------------------------------------------------------------------------
+
 tourSchema.pre(/^find/, function (next) {
   this.find({ secretTour: { $ne: true } });
   next();
 });
 
+// ---------------------------------------------------------------------------------------------------
+
+// RUNS ON AGGREGATE FUNCTIONS 
+
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
   next();
 });
+
 // tourSchema.post('save', function (next) {
 //  console.log('I will come after saving....')
 //   next();
