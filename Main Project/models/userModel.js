@@ -29,6 +29,11 @@ const userSchema = new mongoose.Schema({
     enum: ['user', 'guide', 'lead-guide', 'admin'],
     default: 'user',
   },
+  active: {
+    type: Boolean,
+    default: true,
+    select: false,
+  },
   passwordConfirm: {
     type: String,
     required: [true, 'Please confirm your password'],
@@ -43,7 +48,14 @@ const userSchema = new mongoose.Schema({
 });
 
 // ---------------------------------------------------------------------------------------------------
+userSchema.pre(/^find/, function (next) {
+  // WHEN DELETE ME IS PERFORMED USER ACTIVE IS SET TO FALSE , THEN ONLY SHOW USER ACTIVE NOT FALSE
+  this.find({active : {$ne : false}})
 
+  next()
+});
+
+// ---------------------------------------------------------------------------------------------------
 userSchema.pre('save', async function (next) {
   // Only run this function if password was actually modified
   if (!this.isModified('password')) return next();
@@ -53,6 +65,15 @@ userSchema.pre('save', async function (next) {
 
   // Delete passwordConfirm field
   this.passwordConfirm = undefined;
+  next();
+});
+
+userSchema.pre('save', function (next) {
+  // CHECKING IF PASSWORD IS MODIFIED BEFORE SAVE OR IS A NEW DATA
+  if (!this.isModified('password') || this.isNew) return next();
+  // IF PASSWORD IS CHANGED SETTING THE TIME
+  this.changedPasswordAt = Date.now() - 1000;
+
   next();
 });
 
@@ -67,7 +88,7 @@ userSchema.methods.correctPassword = async function (
 };
 
 // ---------------------------------------------------------------------------------------------------
-
+// CHECKING WHEN THE PASSWORD WAS CHANGED : BEFORE OR AFTER TOKEN IS ISSUED
 userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
   if (this.changedPasswordAt) {
     const changedTimeStamp = parseInt(
@@ -84,16 +105,15 @@ userSchema.methods.changedPasswordAfter = function (JWTTimeStamp) {
 // CREATE A RANDOM TOKEN AND SEND TO CLIENT TO RESET PASSWORD
 
 userSchema.methods.createPasswordResetToken = function () {
-
   const resetToken = crypto.randomBytes(32).toString('hex');
-// ENCRYPT THE TOKEN AND SAVE IT IN THE DB
+  // ENCRYPT THE TOKEN AND SAVE IT IN THE DB
   this.passwordResetToken = crypto
     .createHash('sha256')
     .update(resetToken)
     .digest('hex');
 
   this.passwordResetExpiresIn = Date.now() + 10 * 60 * 1000;
-// SEND THE DECRYPTED TOKEN
+  // SEND THE DECRYPTED TOKEN
   return resetToken;
 };
 

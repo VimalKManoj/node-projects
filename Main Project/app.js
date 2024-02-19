@@ -4,14 +4,46 @@ const tourRouter = require('./Routes/tourRouter');
 const userRouter = require('./Routes/userRouter');
 const AppError = require('./utils/appErrors');
 const errorController = require('./Controllers/errorController');
+const rateLimit = require('express-rate-limit');
+const helmet = require('helmet');
+const mongoSanitize = require('express-mongo-sanitize');
+const xss = require('xss-clean');
+const hpp = require('hpp');
 
 const app = express();
 
-// MIDDLEWARES 
+//GLOBAL MIDDLEWARES
+
+app.use(helmet());
+
+app.use(mongoSanitize());
+
+app.use(xss());
+
+app.use(
+  hpp({
+    whitelist: [
+      'duration',
+      'maxGroupSize',
+      'difficulty',
+      'ratingsAverage',
+      'ratingsQuantity',
+      'price',
+    ],
+  }),
+);
 
 app.use(express.json());
 
 app.use(express.static(`${__dirname}/public`));
+
+const limiter = rateLimit({
+  max: 100,
+  windowMs: 60 * 60 * 1000,
+  message: 'Too many requests from this IP , try again after 1hr!',
+});
+
+app.use('/api', limiter);
 
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
