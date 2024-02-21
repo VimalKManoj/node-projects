@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
+const User = require('./userModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -29,6 +30,31 @@ const tourSchema = new mongoose.Schema(
         message: 'difficulty is either easy ,medium , difficult',
       },
     },
+    startLocation: {
+      type: {
+        type: String,
+        default: 'Point',
+        enum: ['Point'],
+      },
+      coordinates: [Number],
+      address: String,
+      description: String,
+      day: Date,
+    },
+    locations: [
+      {
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
+        day: Date,
+      },
+    ],
+    guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
 
     ratingsAverage: {
       type: Number,
@@ -88,11 +114,33 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+tourSchema.virtual('reviews', {
+  ref: 'Review',
+  foreignField:'tour',
+  localField:'_id'
+});
+
 // ---------------------------------------------------------------------------------------------------
 
 // runs only for save() and create()
 tourSchema.pre('save', function (next) {
   this.slug = slugify(this.name, { lower: true });
+  next();
+});
+
+// EMBEDDING TOUR GUIDES INTO TOUR
+
+// tourSchema.pre('save', async function (next) {
+//   const guidePromises = this.guides.map(async (id) => await User.findById(id));
+//   this.guides = await Promise.all(guidePromises);
+//   next();
+// });
+
+tourSchema.pre(/^find/, function (next) {
+  this.populate({
+    path: 'guides',
+    select: '-__v -changedPasswordAt',
+  });
   next();
 });
 
@@ -105,7 +153,7 @@ tourSchema.pre(/^find/, function (next) {
 
 // ---------------------------------------------------------------------------------------------------
 
-// RUNS ON AGGREGATE FUNCTIONS 
+// RUNS ON AGGREGATE FUNCTIONS
 
 tourSchema.pre('aggregate', function (next) {
   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });

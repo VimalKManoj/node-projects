@@ -2,6 +2,7 @@ const express = require('express');
 const morgan = require('morgan');
 const tourRouter = require('./Routes/tourRouter');
 const userRouter = require('./Routes/userRouter');
+const reviewRouter = require('./Routes/reviewRouter');
 const AppError = require('./utils/appErrors');
 const errorController = require('./Controllers/errorController');
 const rateLimit = require('express-rate-limit');
@@ -14,12 +15,16 @@ const app = express();
 
 //GLOBAL MIDDLEWARES
 
+// SETTING SPECIAL HEADERS
 app.use(helmet());
 
+// DATA SANITIZATION AGAINST NOsql DATA INJECTION
 app.use(mongoSanitize());
 
+// SANITIZATION AGAINST XSS REMOVE DANGER JS FROM REQ
 app.use(xss());
 
+// REMOVE PARAMETER POLLUTION
 app.use(
   hpp({
     whitelist: [
@@ -33,10 +38,13 @@ app.use(
   }),
 );
 
+// BODY PARSER , READIND BODY FROM DATA TO REQ.BODY
 app.use(express.json());
 
+//SERVING STATIC FILES
 app.use(express.static(`${__dirname}/public`));
 
+// LIMIT REQUESTS FROM SAME IP
 const limiter = rateLimit({
   max: 100,
   windowMs: 60 * 60 * 1000,
@@ -45,6 +53,7 @@ const limiter = rateLimit({
 
 app.use('/api', limiter);
 
+// LOGGER
 if (process.env.NODE_ENV === 'development') {
   app.use(morgan('dev'));
 }
@@ -58,6 +67,7 @@ app.use((req, res, next) => {
 
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
+app.use('/api/v1/reviews',reviewRouter );
 
 // HANDLING INVALID ROUTES
 
