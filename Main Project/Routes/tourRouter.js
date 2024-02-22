@@ -6,10 +6,25 @@ const reviewRouter = require('./../Routes/reviewRouter');
 const router = express.Router();
 // router.param('id', tourControllers.checkID);
 
+// IF THIS ROUTE COMES PASSES IT TO REVIEW ROUTER
 router.use('/:tourId/reviews', reviewRouter);
 
 router.route('/tour-stats').get(tourControllers.getTourStats);
-router.route('/monthly-plan/:year').get(tourControllers.getMonthlyPlans);
+router
+  .route('/monthly-plan/:year')
+  .get(
+    authControllers.protect,
+    authControllers.restrictTo('admin', 'lead-guide', 'guide'),
+    tourControllers.getMonthlyPlans,
+  );
+
+router
+  .route('/tours-within/:distance/center/:latlong/unit/:unit')
+  .get(tourControllers.getToursWithIn);
+
+router
+  .route('/distances/:latlong/unit/:unit')
+  .get(tourControllers.getDistances);
 
 router
   .route('/top-5-tours')
@@ -17,14 +32,22 @@ router
 
 router
   .route('/')
-  .get(authControllers.protect, tourControllers.getAllTours)
-  .post(tourControllers.createTour);
+  .get(tourControllers.getAllTours)
+  .post(
+    authControllers.protect,
+    authControllers.restrictTo('admin', 'lead-guide'),
+    tourControllers.createTour,
+  );
 
 // tourControllers.checkBody,
 
 router
   .route('/:id')
-  .patch(tourControllers.updateTour)
+  .patch(
+    authControllers.protect,
+    authControllers.restrictTo('admin', 'lead-guide'),
+    tourControllers.updateTour,
+  )
   .get(tourControllers.getTour)
   .delete(
     authControllers.protect,

@@ -1,136 +1,30 @@
 const AppError = require('../utils/appErrors');
 const Tour = require('./../models/tourModel');
-const APIfeatures = require('./../utils/apiFeatures');
+// const APIfeatures = require('./../utils/apiFeatures');
+const factory = require('./handlerFactory');
 
 // ALAISING
-
 exports.aliasTours = (req, res, next) => {
-  req.query.sort = '-ratingsAverage , price';
   req.query.limit = '5';
-  req.query.fields = 'name,price,difficulty,summary,ratingsAverage';
+  req.query.sort = '-ratingsAverage,price';
+  req.query.fields = 'name,price,ratingsAverage,summary,difficulty';
   next();
 };
 
-exports.getAllTours = async (req, res, next) => {
-  try {
-    // BEFORE GETTING ALL TOURS , CHECKS IF ANY OF THE FILTER IS THERE AND ADD IT TO THE QUERY
-    const features = new APIfeatures(Tour.find(), req.query)
-      .filter()
-      .sort()
-      .fieldLimit()
-      .paginate();
+// ----------------- All functions from handler Factory -------------------
 
-      // CHECKS THE FINAL QUERY AND GETS OUTPUT BASED ON THAT
-    const tours = await features.query;
+exports.getAllTours = factory.getAll(Tour);
 
-    res.status(200).json({
-      status: 'Success',
-      results: tours.length,
-      data: {
-        tours,
-      },
-    });
-  } catch (error) {
-    next(error);
-    // res.status(404).json({
-    //   status: 'fail',
-    //   message: 'something went wrong!',
-    //   error,
-    // });
-  }
-};
+exports.getTour = factory.getOne(Tour, { path: 'reviews' });
+// exports.getTour = factory.getOne(Tour, { path: 'reviews' });
 
-exports.getTour = async (req, res, next) => {
-  try {
-    const tour = await Tour.findById(req.params.id).populate('reviews');
+exports.createTour = factory.createOne(Tour);
 
-    if (!tour) {
-      return next(new AppError(`Tour with ID not found`, 404));
-    }
+exports.updateTour = factory.updateOne(Tour);
 
-    res.status(200).json({
-      status: 'Success',
-      data: {
-        tour,
-      },
-    });
-  } catch (error) {
-    next(error);
-    // res.status(404).json({
-    //   status: 'fail',
-    //   message: 'something went wrong!',
-    //   error,
-    // });
-  }
-};
+exports.deleteTour = factory.deleteOne(Tour);
 
-exports.createTour = async (req, res, next) => {
-  try {
-    const newTour = await Tour.create(req.body);
-
-    res.status(201).json({
-      status: 'success',
-      results: newTour.length,
-      data: {
-        tour: newTour,
-      },
-    });
-  } catch (error) {
-    next(error);
-    // console.error(error);
-    // res.status(400).json({
-    //   status: 'fail',
-    //   message: 'Invalid data. Please check your request payload.',
-    // });
-  }
-};
-
-exports.updateTour = async (req, res, next) => {
-  try {
-    const tour = await Tour.findByIdAndUpdate(req.params.id, req.body, {
-      new: true,
-      runValidators: true,
-    });
-
-    if (!tour) {
-      return next(new AppError(`Tour with ID not found`));
-    }
-
-    res.status(201).send({
-      status: 'success',
-      data: {
-        tour,
-      },
-    });
-  } catch (error) {
-    // res.status(400).json({
-    //   status: 'fail',
-    //   message: 'Invalid data. Please check your request payload.',
-    // });
-    next(error);
-  }
-};
-
-exports.deleteTour = async (req, res, next) => {
-  try {
-    const tour = await Tour.findByIdAndDelete(req.params.id);
-
-    if (!tour) {
-      return next(new AppError(`Tour with ID not found`));
-    }
-
-    res.status(204).send({
-      status: 'deleted',
-      data: null,
-    });
-  } catch (error) {
-    // res.status(400).json({
-    //   status: 'fail',
-    //   message: 'Invalid data. Please check your request payload.',
-    // });
-    next(error);
-  }
-};
+// STATS ROUTE-------------------------------------------------------------
 
 exports.getTourStats = async (req, res, next) => {
   try {
@@ -212,6 +106,74 @@ exports.getMonthlyPlans = async (req, res, next) => {
     next(error);
   }
 };
+
+exports.getToursWithIn = async (req, res, next) => {
+  const { distance, latlong, unit } = req.params;
+  const [lat, long] = latlong.split(',');
+
+  const radius = unit === 'mi' ? distance / 3963.2 : distance / 6378.1;
+
+  if (!lat || !long) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,long',
+        400,
+      ),
+    );
+  }
+  const tours = await Tour.find({
+    startLocation: { $geoWithin: { $centerSphere: [[long, lat], radius] } },
+  });
+
+  res.status(200).json({
+    status: 'success',
+    results: tours.length,
+    data: {
+      tours,
+    },
+  });
+};
+
+exports.getDistances = async (req, res, next) => {
+  const { latlong, unit } = req.params;
+  const [lat, long] = latlong.split(',');
+
+  const multiplier = unit === 'mi' ? 0.000621371 : 0.001;
+
+  if (!lat || !long) {
+    next(
+      new AppError(
+        'Please provide latitude and longitude in the format lat,long',
+        400,
+      ),
+    );
+  }
+
+  const distances = await Tour.aggregate([
+  {
+    $geoNear: {
+      near: {
+        type: 'Point',
+        coordinates: [long * 1, lat * 1],
+      },
+      distanceField: 'distance',
+      distanceMultiplier: multiplier,
+    },
+  },
+  {
+    $project: { name: 1, distance: 1 },
+  },
+]);
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      distances,
+    },
+  });
+};
+
+// ----------------------------------------------------------------------------------------
 
 // const tours = JSON.parse(
 //   fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`)
@@ -296,3 +258,26 @@ exports.getMonthlyPlans = async (req, res, next) => {
 // const skip = (page - 1) * limit;
 
 // query = query.skip(skip).limit(limit);
+
+// ---------------------------------------------------------------------------------------------------------------
+
+// exports.deleteTour = async (req, res, next) => {
+//   try {
+//     const tour = await Tour.findByIdAndDelete(req.params.id);
+
+//     if (!tour) {
+//       return next(new AppError(`Tour with ID not found`));
+//     }
+
+//     res.status(204).send({
+//       status: 'deleted',
+//       data: null,
+//     });
+//   } catch (error) {
+//     // res.status(400).json({
+//     //   status: 'fail',
+//     //   message: 'Invalid data. Please check your request payload.',
+//     // });
+//     next(error);
+//   }
+// };

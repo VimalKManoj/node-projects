@@ -47,7 +47,6 @@ exports.signup = async (req, res, next) => {
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
-      changedPasswordAt: req.body.changedPasswordAt,
     });
 
     createSendToken(newUser, 201, res);

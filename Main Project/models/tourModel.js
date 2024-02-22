@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
 const slugify = require('slugify');
-const User = require('./userModel');
+const Review = require('./reviewModel');
 // const validator = require('validator');
 
 const tourSchema = new mongoose.Schema(
@@ -30,17 +30,19 @@ const tourSchema = new mongoose.Schema(
         message: 'difficulty is either easy ,medium , difficult',
       },
     },
-    startLocation: {
-      type: {
-        type: String,
-        default: 'Point',
-        enum: ['Point'],
+    startLocation: [
+      {
+        // GeoJSON
+        type: {
+          type: String,
+          default: 'Point',
+          enum: ['Point'],
+        },
+        coordinates: [Number],
+        address: String,
+        description: String,
       },
-      coordinates: [Number],
-      address: String,
-      description: String,
-      day: Date,
-    },
+    ],
     locations: [
       {
         type: {
@@ -51,7 +53,7 @@ const tourSchema = new mongoose.Schema(
         coordinates: [Number],
         address: String,
         description: String,
-        day: Date,
+        day: Number,
       },
     ],
     guides: [{ type: mongoose.Schema.ObjectId, ref: 'User' }],
@@ -59,6 +61,9 @@ const tourSchema = new mongoose.Schema(
     ratingsAverage: {
       type: Number,
       default: 4.5,
+      min: [1, 'Rating must be minimum one'],
+      max: [5, 'Rating must be below five'],
+      set: (val) => Math.round(val * 10) / 10,
     },
 
     ratingsQuantity: {
@@ -107,6 +112,10 @@ const tourSchema = new mongoose.Schema(
     toObject: { virtuals: true },
   },
 );
+// SET INDEX IN DB SO THAT SEARCHING BECOMES FASTER FOR FREQUENTLY ACCESSED QUERY
+tourSchema.index({ price: 1, ratingsAverage: -1 });
+tourSchema.index({ slug: 1 });
+tourSchema.index({ startLocation: '2dsphere' });
 
 // ---------------------------------------------------------------------------------------------------
 
@@ -114,12 +123,12 @@ tourSchema.virtual('durationWeeks').get(function () {
   return this.duration / 7;
 });
 
+// ADDING A VIRTUAL FIELD IN TOUR FOR REVIEWS INORDER TO UNDERSTAND THE REVIEWS ON EACH TOUR
 tourSchema.virtual('reviews', {
   ref: 'Review',
-  foreignField:'tour',
-  localField:'_id'
+  foreignField: 'tour',
+  localField: '_id',
 });
-
 // ---------------------------------------------------------------------------------------------------
 
 // runs only for save() and create()
@@ -136,6 +145,7 @@ tourSchema.pre('save', function (next) {
 //   next();
 // });
 
+// POPULATE THE GUIDE IN TOUR
 tourSchema.pre(/^find/, function (next) {
   this.populate({
     path: 'guides',
@@ -155,10 +165,10 @@ tourSchema.pre(/^find/, function (next) {
 
 // RUNS ON AGGREGATE FUNCTIONS
 
-tourSchema.pre('aggregate', function (next) {
-  this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
-  next();
-});
+// tourSchema.pre('aggregate', function (next) {
+//   this.pipeline().unshift({ $match: { secretTour: { $ne: true } } });
+//   next();
+// });
 
 // tourSchema.post('save', function (next) {
 //  console.log('I will come after saving....')
