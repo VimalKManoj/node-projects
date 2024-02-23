@@ -1,8 +1,11 @@
+const path = require('path');
 const express = require('express');
 const morgan = require('morgan');
+const cookieParser = require('cookie-parser');
 const tourRouter = require('./Routes/tourRouter');
 const userRouter = require('./Routes/userRouter');
 const reviewRouter = require('./Routes/reviewRouter');
+const viewRouter = require('./Routes/viewRouter');
 const AppError = require('./utils/appErrors');
 const errorController = require('./Controllers/errorController');
 const rateLimit = require('express-rate-limit');
@@ -13,7 +16,12 @@ const hpp = require('hpp');
 
 const app = express();
 
+app.set('view engine', 'pug');
+app.set('views', path.join(__dirname, 'views'));
 //GLOBAL MIDDLEWARES
+
+//SERVING STATIC FILES
+app.use(express.static(path.join(__dirname, 'public')));
 
 // SETTING SPECIAL HEADERS
 app.use(helmet());
@@ -40,9 +48,7 @@ app.use(
 
 // BODY PARSER , READIND BODY FROM DATA TO REQ.BODY
 app.use(express.json());
-
-//SERVING STATIC FILES
-app.use(express.static(`${__dirname}/public`));
+app.use(cookieParser());
 
 // LIMIT REQUESTS FROM SAME IP
 const limiter = rateLimit({
@@ -65,17 +71,14 @@ app.use((req, res, next) => {
 
 // ROUTERS
 
+app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
-app.use('/api/v1/reviews',reviewRouter );
+app.use('/api/v1/reviews', reviewRouter);
 
 // HANDLING INVALID ROUTES
 
 app.all('*', (req, res, next) => {
-  // const err = new Error(`can't find  ${req.originalUrl} on this server`);
-  // err.statusCode = 404;
-  // err.status = 'fail';
-
   next(new AppError(`can't find  ${req.originalUrl} on this server`, 404));
 });
 

@@ -98,10 +98,11 @@ exports.protect = async (req, res, next) => {
     req.headers.authorization.startsWith('Bearer')
   ) {
     token = req.headers.authorization.split(' ')[1];
+  } else if (req.cookies.jwt) {
+    token = req.cookies.jwt;
   }
-
-  // IF NO TOKEN IS PRESENT
   if (!token) {
+    // IF NO TOKEN IS PRESENT
     return next(
       new AppError('You are not logged in , Please log in to get access', 401),
     );
@@ -255,3 +256,29 @@ exports.updatePassword = async (req, res, next) => {
 };
 
 // ---------------------------------------------------------------------------------------------------
+
+exports.isLoggedIn = async (req, res, next) => {
+  // CHECK IF THERE IS A TOKEN AND STARTS WITH BEARER(convention)
+  if (req.cookies.jwt) {
+    // VERIFY THE TOKEN
+    const decoded = await promisify(jwt.verify)(
+      req.cookies.jwt,
+      process.env.JWT_SECRET,
+    );
+
+    const freshUser = await User.findById(decoded.id);
+    if (!freshUser) {
+      return next();
+    }
+
+    // CHECK IF THE USER STILL EXIST
+
+    // IF THE USER CHANGED THE PASSWORD AFTER TOKEN ISSUING , CHECKED FROM USERSCHEMA INSTANSE
+    if (freshUser.changedPasswordAfter(decoded.iat)) {
+      return next();
+    }
+    res.locals.user = freshUser;
+    return next();
+  }
+  next();
+};
