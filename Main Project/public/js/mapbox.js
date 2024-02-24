@@ -1,5 +1,9 @@
 const locations = JSON.parse(document.getElementById('map').dataset.locations);
 
+// window.addEventListener('load', () => {
+//   window.scrollTo(0, 0); // Scroll to the top of the page
+// });
+
 maptilersdk.config.apiKey = 'szkdIpF2GUtROAlga0QD';
 const map = new maptilersdk.Map({
   container: 'map', // container's id or the HTML element to render the map
@@ -22,10 +26,10 @@ locations.forEach((loc) => {
     .setLngLat(loc.coordinates)
     .addTo(map);
 
-  new maptilersdk.Popup({ offset: 30 })
-    .setLngLat(loc.coordinates)
-    .setHTML(`<p>Day ${loc.day} : ${loc.description}</p>`)
-    .addTo(map);
+  // new maptilersdk.Popup({ offset: 30 })
+  //   .setLngLat(loc.coordinates)
+  //   .setHTML(`<p>Day ${loc.day} : ${loc.description}</p>`)
+  //   .addTo(map);
 
   bounds.extend(loc.coordinates);
 });

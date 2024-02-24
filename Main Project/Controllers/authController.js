@@ -88,6 +88,13 @@ exports.login = async (req, res, next) => {
 
 // ---------------------------------------------------------------------------------------------------
 
+exports.logout = (req, res, next) => {
+  res.cookie('jwt', 'logged out', {
+    expires: new Date(Date.now() + 10 * 1000),
+    httpOnly: true,
+  });
+  res.status(200).json({ status: 'success' });
+};
 // PROTECT ROUTES
 
 exports.protect = async (req, res, next) => {
@@ -129,6 +136,7 @@ exports.protect = async (req, res, next) => {
   }
 
   req.user = freshUser;
+  res.locals.user = freshUser;
   next();
 };
 
@@ -260,25 +268,29 @@ exports.updatePassword = async (req, res, next) => {
 exports.isLoggedIn = async (req, res, next) => {
   // CHECK IF THERE IS A TOKEN AND STARTS WITH BEARER(convention)
   if (req.cookies.jwt) {
+    try {
+      const decoded = await promisify(jwt.verify)(
+        req.cookies.jwt,
+        process.env.JWT_SECRET,
+      );
+
+      const freshUser = await User.findById(decoded.id);
+      if (!freshUser) {
+        return next();
+      }
+
+      // CHECK IF THE USER STILL EXIST
+
+      // IF THE USER CHANGED THE PASSWORD AFTER TOKEN ISSUING , CHECKED FROM USERSCHEMA INSTANSE
+      if (freshUser.changedPasswordAfter(decoded.iat)) {
+        return next();
+      }
+      res.locals.user = freshUser;
+      return next();
+    } catch (error) {
+      return next();
+    }
     // VERIFY THE TOKEN
-    const decoded = await promisify(jwt.verify)(
-      req.cookies.jwt,
-      process.env.JWT_SECRET,
-    );
-
-    const freshUser = await User.findById(decoded.id);
-    if (!freshUser) {
-      return next();
-    }
-
-    // CHECK IF THE USER STILL EXIST
-
-    // IF THE USER CHANGED THE PASSWORD AFTER TOKEN ISSUING , CHECKED FROM USERSCHEMA INSTANSE
-    if (freshUser.changedPasswordAfter(decoded.iat)) {
-      return next();
-    }
-    res.locals.user = freshUser;
-    return next();
   }
   next();
 };

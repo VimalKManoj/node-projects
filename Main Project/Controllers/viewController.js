@@ -1,12 +1,20 @@
 const Tour = require('../models/tourModel');
+const AppError = require('../utils/appErrors');
 
 exports.getOverview = async (req, res, next) => {
   try {
     const tours = await Tour.find();
-    res.status(200).render('overview', {
-      title: 'All tours',
-      tours,
-    });
+
+    res
+      .status(200)
+      .set(
+        'Content-Security-Policy',
+        "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;",
+      )
+      .render('overview', {
+        title: 'All tours',
+        tours,
+      });
   } catch (error) {
     next(error);
   }
@@ -18,6 +26,10 @@ exports.getTour = async (req, res, next) => {
       path: 'reviews',
       fields: 'review rating user',
     });
+
+    if (tour.length === 0) {
+      return next(new AppError('There is no tour with this name', 404));
+    }
     res
       .status(200)
       .set(
@@ -42,5 +54,17 @@ exports.login = (req, res, next) => {
     )
     .render('login', {
       title: 'Login',
+    });
+};
+
+exports.getAccount = (req, res) => {
+  res
+    .status(200)
+    .set(
+      'Content-Security-Policy',
+      "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://cdnjs.cloudflare.com;",
+    )
+    .render('account', {
+      title: 'Your account',
     });
 };
