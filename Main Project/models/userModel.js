@@ -14,7 +14,7 @@ const userSchema = new mongoose.Schema({
     unique: true,
     validate: [validator.isEmail, 'Please provide a valid email'],
   },
-  photo: String,
+  photo: { type: String, default: 'default.jpg' },
   changedPasswordAt: Date,
   passwordResetToken: String,
   passwordResetExpiresIn: Date,
@@ -50,9 +50,9 @@ const userSchema = new mongoose.Schema({
 // ---------------------------------------------------------------------------------------------------
 userSchema.pre(/^find/, function (next) {
   // WHEN DELETE ME IS PERFORMED USER ACTIVE IS SET TO FALSE , THEN ONLY SHOW USER ACTIVE NOT FALSE
-  this.find({active : {$ne : false}})
+  this.find({ active: { $ne: false } });
 
-  next()
+  next();
 });
 
 // ---------------------------------------------------------------------------------------------------

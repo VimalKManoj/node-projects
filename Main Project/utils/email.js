@@ -1,8 +1,22 @@
 const nodemailer = require('nodemailer');
+const htmlToText = require('html-to-text');
+const pug = require('pug');
 
-const sendEmail = async (options) => {
-  try {
-    const transporter = nodemailer.createTransport({
+module.exports = class Email {
+  constructor(user, url) {
+    this.to = user.email;
+    this.firstName = user.name.split(' ')[0];
+    this.url = url;
+    this.from = 'Vimal Manoj <hello@gmail.com>';
+  }
+
+  newTransport() {
+    if (process.env.NODE_ENV === 'production') {
+      // SEND GRID
+      return 1;
+    }
+    // MAILTRAP
+    return nodemailer.createTransport({
       host: process.env.EMAIL_HOST,
       port: process.env.EMAIL_PORT,
       auth: {
@@ -10,19 +24,32 @@ const sendEmail = async (options) => {
         pass: process.env.EMAIL_PASSWORD,
       },
     });
+  }
+
+  async send(template, subject) {
+    const html = pug.renderFile(`${__dirname}/../views/email/${template}.pug`, {
+      firstName: this.firstName,
+      url: this.url,
+      subject,
+    });
 
     const mailOptions = {
-      from: 'Vimal Manoj <hello@gmail.com>',
-      to: options.email,
-      subject: options.subject,
-      text: options.message,
+      from: this.from,
+      to: this.to,
+      subject,
+      html,
+      text: htmlToText.convert(html),
       // html:
     };
 
-    await transporter.sendMail(mailOptions);
-  } catch (error) {
-    console.log(error);
+    await this.newTransport().sendMail(mailOptions);
+  }
+
+  async sendWelcome() {
+    await this.send('welcome', 'Welcome to the tour app family');
+  }
+
+  async resetPassword() {
+    await this.send('resetPasswordEmail', 'Reset Your account password');
   }
 };
-
-module.exports = sendEmail;

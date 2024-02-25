@@ -1,7 +1,63 @@
 const AppError = require('../utils/appErrors');
+const multer = require('multer');
+const sharp = require('sharp');
 const Tour = require('./../models/tourModel');
 // const APIfeatures = require('./../utils/apiFeatures');
 const factory = require('./handlerFactory');
+
+const multerStorage = multer.memoryStorage();
+
+const multerFilter = (req, file, cb) => {
+  if (file.mimetype.startsWith('image')) {
+    cb(null, true);
+  } else {
+    cb(new AppError('please upload only image ', 400), false);
+  }
+};
+
+const upload = multer({ storage: multerStorage, fileFilter: multerFilter });
+
+exports.uploadTourPhoto = upload.fields([
+  {
+    name: 'imageCover',
+    maxCount: 1,
+  },
+  {
+    name: 'images',
+    maxCount: 3,
+  },
+]);
+
+exports.resizeTourPhoto = async (req, res, next) => {
+  try {
+    if (!req.files.imageCover || !req.files.images) return next();
+
+    req.body.imageCover = `tour-${req.params.id}-${Date.now()}-cover.jpeg`;
+
+    await sharp(req.files.imageCover[0].buffer)
+      .resize(2000, 1333)
+      .toFormat('jpeg')
+      .jpeg({ quality: 90 })
+      .toFile(`public/img/users/${req.body.imageCover}`);
+
+    req.body.images = [];
+    await Promise.all(
+      req.files.images.map(async (file, i) => {
+        const filename = `tour-${req.params.id}-${Date.now()}-${i + 1}.jpeg`;
+
+        await sharp(file.buffer)
+          .resize(2000, 1333)
+          .toFormat('jpeg')
+          .jpeg({ quality: 90 })
+          .toFile(`public/img/users/${filename}`);
+        req.body.images.push(filename);
+      }),
+    );
+    next();
+  } catch (error) {
+    next(error);
+  }
+};
 
 // ALAISING
 exports.aliasTours = (req, res, next) => {
@@ -150,20 +206,20 @@ exports.getDistances = async (req, res, next) => {
   }
 
   const distances = await Tour.aggregate([
-  {
-    $geoNear: {
-      near: {
-        type: 'Point',
-        coordinates: [long * 1, lat * 1],
+    {
+      $geoNear: {
+        near: {
+          type: 'Point',
+          coordinates: [long * 1, lat * 1],
+        },
+        distanceField: 'distance',
+        distanceMultiplier: multiplier,
       },
-      distanceField: 'distance',
-      distanceMultiplier: multiplier,
     },
-  },
-  {
-    $project: { name: 1, distance: 1 },
-  },
-]);
+    {
+      $project: { name: 1, distance: 1 },
+    },
+  ]);
 
   res.status(200).json({
     status: 'success',
