@@ -17,12 +17,15 @@ const signToken = (id) => {
 const createSendToken = (user, status, res) => {
   const token = signToken(user._id);
 
+  // SET OPTIONS FOR COOKIE TO SEND
   const cookieOptions = {
     expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
     httpOnly: true,
   };
+  // SET SECURE FOR TOKEN IN PRODUCTION
   if (process.env.NODE_ENV === 'production') cookieOptions.secure = true;
 
+  // SENDING THE COOKIE IN RESPONSE
   res.cookie('jwt', token, cookieOptions);
 
   user.password = undefined;
@@ -50,6 +53,8 @@ exports.signup = async (req, res, next) => {
       passwordConfirm: req.body.passwordConfirm,
     });
 
+    // SEND A WELCOME MESSAGE TO EMAIL OF USER
+    // SETTING THE URL TO CHANGE DP OF THE USER
     const url = `${req.protocol}://${req.get('host')}/me`;
     await new Email(newUser, url).sendWelcome();
 
@@ -93,6 +98,7 @@ exports.login = async (req, res, next) => {
 // ---------------------------------------------------------------------------------------------------
 
 exports.logout = (req, res, next) => {
+  // WHEN LOGGING OUT SEND A NEW COOKIE WITH NO JWT TOKEN SO THAT IT FAILS THE VERIFY
   res.cookie('jwt', 'logged out', {
     expires: new Date(Date.now() + 10 * 1000),
     httpOnly: true,

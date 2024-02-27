@@ -1,3 +1,4 @@
+const Booking = require('../models/bookingModel');
 const Tour = require('../models/tourModel');
 const AppError = require('../utils/appErrors');
 
@@ -34,7 +35,7 @@ exports.getTour = async (req, res, next) => {
       .status(200)
       .set(
         'Content-Security-Policy',
-        "default-src 'self' https://*.maptiler.com ;base-uri 'self';block-all-mixed-content;font-src 'self' https: data:;frame-ancestors 'self';img-src 'self' data:;object-src 'none';script-src https://cdnjs.cloudflare.com http://cdn.maptiler.com https://cdn.maptiler.com https://cloud.maptiler.com https://api.maptiler.co 'self' blob: ;script-src-attr 'none';style-src 'self' https: 'unsafe-inline';upgrade-insecure-requests;",
+        "default-src 'self' https://*.maptiler.com ; base-uri 'self'; block-all-mixed-content; font-src 'self' https: data:; frame-ancestors 'self'; img-src 'self' data:; object-src 'none'; script-src https://cdnjs.cloudflare.com http://cdn.maptiler.com https://cdn.maptiler.com https://cloud.maptiler.com https://api.maptiler.co https://js.stripe.com 'self' blob: ; frame-src 'self' https://js.stripe.com/ ; script-src-attr 'none'; style-src 'self' https: 'unsafe-inline'; upgrade-insecure-requests;",
       )
       .render('tour', {
         title: `${tour[0].name} tour`,
@@ -67,4 +68,14 @@ exports.getAccount = (req, res) => {
     .render('account', {
       title: 'Your account',
     });
+};
+
+exports.getMyTours = async (req, res, next) => {
+  const bookings = await Booking.find({ user: req.user.id });
+
+  const tourIDs = bookings.map((el) => el.tour.id);
+
+  const tours = await Tour.find({ _id: { $in: tourIDs } });
+
+  res.status(200).render('overview', { title: 'My tour Bookings', tours });
 };

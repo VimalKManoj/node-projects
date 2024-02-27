@@ -6,6 +6,7 @@ const tourRouter = require('./Routes/tourRouter');
 const userRouter = require('./Routes/userRouter');
 const reviewRouter = require('./Routes/reviewRouter');
 const viewRouter = require('./Routes/viewRouter');
+const bookingRouter = require('./Routes/bookingRouter');
 const AppError = require('./utils/appErrors');
 const errorController = require('./Controllers/errorController');
 const rateLimit = require('express-rate-limit');
@@ -75,6 +76,7 @@ app.use('/', viewRouter);
 app.use('/api/v1/tours', tourRouter);
 app.use('/api/v1/users', userRouter);
 app.use('/api/v1/reviews', reviewRouter);
+app.use('/api/v1/bookings',bookingRouter),
 
 // HANDLING INVALID ROUTES
 
