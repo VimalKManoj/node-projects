@@ -15,7 +15,7 @@ const showAlert = (type, msg) => {
 
 const login = async (email, password) => {
   try {
-    const res = await axios.post('http://localhost:3000/api/v1/users/login', {
+    const res = await axios.post('/api/v1/users/login', {
       email,
       password,
     });
@@ -34,7 +34,7 @@ const login = async (email, password) => {
 const logout = async () => {
   try {
     location.assign('/');
-    const res = await axios.get('http://localhost:3000/api/v1/users/logout');
+    const res = await axios.get('/api/v1/users/logout');
     // console.log(res);
     if (res.data.status === 'success') location.reload(true);
   } catch (error) {

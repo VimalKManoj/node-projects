@@ -7,7 +7,7 @@ const Bookbtn = document.getElementById('book-tour');
 const bookTour = async (tourid) => {
   try {
     const session = await axios(
-      `http://localhost:3000/api/v1/bookings/checkout-session/${tourid}`,
+      `/api/v1/bookings/checkout-session/${tourid}`,
     );
     console.log(session);
 

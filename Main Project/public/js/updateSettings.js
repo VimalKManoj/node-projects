@@ -6,8 +6,8 @@ const updateData = async (data, type) => {
   try {
     const url =
       type === 'password'
-        ? 'http://localhost:3000/api/v1/users/updatePassword'
-        : 'http://localhost:3000/api/v1/users/updateMyData';
+        ? '/api/v1/users/updatePassword'
+        : '/api/v1/users/updateMyData';
     console.log(url);
     const res = await axios.patch(url, data);
     console.log(res);
