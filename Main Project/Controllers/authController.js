@@ -1,5 +1,5 @@
 const AppError = require('../utils/appErrors');
-const sendEmail = require('../utils/email');
+// const sendEmail = require('../utils/email');
 const User = require('./../models/userModel');
 const jwt = require('jsonwebtoken');
 const { promisify } = require('util');

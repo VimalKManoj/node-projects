@@ -8,8 +8,8 @@ const handleCastError = (err) => {
 };
 
 const handleDuplicateError = (err) => {
-  const message = `Duplicate field value please check the input`;
-
+  const value = err.errmsg.match(/(["'])(\\?.)*?\1/)[0];
+  const message = `Duplicate field value: ${value}. Please use another value!`;
   return new AppError(message, 400);
 };
 
@@ -28,21 +28,20 @@ const ExpiredError = () =>
 // ERROR MESSAGE FOR DEV
 
 const sendErrDev = (err, req, res) => {
-  // 1) API
-  const url = req.originalUrl || '';
-  if (url.startsWith('/api')) {
-    res.status(err.statusCode).json({
-      err: err,
+  // A) API
+  if (req.originalUrl.startsWith('/api')) {
+    return res.status(err.statusCode).json({
       status: err.status,
+      error: err,
       message: err.message,
       stack: err.stack,
     });
   } else {
     // RENDERED WEBSITE
-    console.log(err);
-    res.status(err.statusCode).render('error', {
+    console.error('ERROR 💥', err);
+    return res.status(err.statusCode).render('error', {
       title: 'Something went wrong!',
-      message: err.message,
+      msg: err.message,
     });
   }
 };

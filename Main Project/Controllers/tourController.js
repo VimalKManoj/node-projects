@@ -5,6 +5,8 @@ const Tour = require('./../models/tourModel');
 // const APIfeatures = require('./../utils/apiFeatures');
 const factory = require('./handlerFactory');
 
+
+// MULTER LIBRARY FOR IMAGE OR FILE UPLOADING
 const multerStorage = multer.memoryStorage();
 
 const multerFilter = (req, file, cb) => {
@@ -27,7 +29,7 @@ exports.uploadTourPhoto = upload.fields([
     maxCount: 3,
   },
 ]);
-
+// IMAGE RESIZING FUNCTION USING MULTER AND SHARP
 exports.resizeTourPhoto = async (req, res, next) => {
   try {
     if (!req.files.imageCover || !req.files.images) return next();

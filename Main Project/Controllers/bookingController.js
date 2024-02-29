@@ -1,14 +1,16 @@
-const AppError = require('../utils/appErrors');
+// const AppError = require('../utils/appErrors');
 const stripe = require('stripe')(process.env.STRIPE_SECRET_KEY);
 const Tour = require('./../models/tourModel');
 const factory = require('./handlerFactory');
 const Booking = require('./../models/bookingModel');
 
+// CREATING A STRIPE CHECK OUT SESSION IN BACKEND
 exports.getCheckoutSession = async (req, res, next) => {
   try {
     const tour = await Tour.findById(req.params.tourId);
     // console.log(tour);
 
+    // CREATE CUSTOMER DATA
     const stripeCustomer = await stripe.customers.create({
       name: req.user.name,
       email: req.user.email,
@@ -20,7 +22,7 @@ exports.getCheckoutSession = async (req, res, next) => {
         country: 'US',
       },
     });
-
+    // CHECKOUT DETAILS
     const session = await stripe.checkout.sessions.create({
       mode: 'payment',
       success_url: `${req.protocol}://${req.get('host')}?tour=${req.params.tourId}&user=${req.user.id}&price=${tour.price}`,
@@ -54,12 +56,18 @@ exports.getCheckoutSession = async (req, res, next) => {
   }
 };
 
+// CREATING CHECKOUT BASED ON THE SUCCESS URL ::: NOT SECURE ::: USE STRIPE WEBHOOKS IN PRODUCTION
 exports.createBooking = async (req, res, next) => {
-  const { tour, user, price } = req.query;
+  try {
+    const { tour, user, price } = req.query;
 
-  if (!tour && !user && !price) return next();
-
-  await Booking.create({ tour, user, price });
-
-  res.redirect(req.originalUrl.split('?')[0]);
+    if (!tour && !user && !price) return next();
+  
+    await Booking.create({ tour, user, price });
+  
+    res.redirect(req.originalUrl.split('?')[0]);
+  } catch (error) {
+    next(error)
+  }
+ 
 };

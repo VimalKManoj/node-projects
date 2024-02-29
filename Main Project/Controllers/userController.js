@@ -64,7 +64,7 @@ exports.getMe = async (req, res, next) => {
 };
 
 exports.updateMe = async (req, res, next) => {
-  console.log(req.file);
+  // console.log(req.file);
   try {
     if (req.body.password || req.body.passwordConfirm) {
       return next(
