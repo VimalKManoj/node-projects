@@ -71,7 +71,7 @@ exports.signup = async (req, res, next) => {
 exports.login = async (req, res, next) => {
   try {
     const { email, password } = req.body;
-
+    
     // CHECK IF THERE IS EMAIL AND PASSWORD
 
     if (!email || !password) {

@@ -4,6 +4,7 @@
   "description": "Learning node express mongodb",
   "main": "app.js",
   "scripts": {
+    "start": "pm2 start server.js --name tour-package-app",
     "test": "echo \"Error: no test specified\" && exit 1",
     "debug": "ndb server.js",
     "build": "node server.js"

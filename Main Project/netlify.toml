@@ -1,0 +1,24 @@
+[build]
+  base = "Main Project/"
+  publish = "Main Project/"
+  functions = "Main Project/netlify/functions"
+  command = "npm run build && node server.js"
+
+[context.production.environment]
+  NODE_ENV = "production"
+
+[context.split1]
+  command = "npm run build && node server.js"
+  publish = "Main Project/"
+
+[context.split1.environment]
+  NODE_ENV = "production"
+
+[context.deploy-preview]
+  command = "npm run build && node server.js"
+
+[context.deploy-preview.environment]
+  NODE_ENV = "production"
+
+[build.environment]
+  NODE_VERSION = "1.0.0" 
